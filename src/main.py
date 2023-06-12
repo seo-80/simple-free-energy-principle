@@ -1,12 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 
 def f(x):
     return x**2
 def f_diff(x):
     return 2*x
 class enviroment():
-    def __init__(self,x0=10,var=[0.1,0.1],h=0.0001,mu0=10,f=f,f_difftmp=f_diff) -> None:
+    def __init__(self,x0=10,var=[0.1,0.1],h=0.0001,mu0=0,f=f,f_difftmp=f_diff) -> None:
         self.var=var# [x_var,y_var]
         self.h=h#　更新幅
         self.mu0=mu0#事前分布の平均
@@ -18,7 +19,7 @@ class enviroment():
         return self.f(self.mu)+np.random.randn()*np.sqrt(self.var[1])
 
 class recognizer(enviroment):
-    def __init__(self,x0=10,analysis_method=1,var=[0.1,0.1],h=0.0001,mu0=10,f=f,f_difftmp=f_diff) -> None:
+    def __init__(self,x0=10,analysis_method=1,var=[0.1,0.1],h=0.0001,mu0=9,f=f,f_difftmp=f_diff) -> None:
         super().__init__(x0=x0,var=var,h=h,mu0=mu0,f=f,f_difftmp=f_difftmp)
         self.analysis_method=analysis_method
         
@@ -43,15 +44,20 @@ class recognizer(enviroment):
 
 h=0.00001
 analysis_method=1
+var=[np.e**-10,np.e**-16]
+var=[0.01,0.01]
+env=enviroment(var=var,x0=10,h=h)
+rec=recognizer(var=var,x0=9,h=h,analysis_method=analysis_method)
 
-env=enviroment(x0=10,h=h)
-rec=recognizer(x0=9,h=h,analysis_method=analysis_method)
 
-
-n=1000
+n=int(0.001/h)
+start=time.time()
 for i in range(n-1):
     y=env.output()
     rec.inference(y)
+    if i%10000==0:
+        print(i)
+print(time.time()-start)
 plt.plot(range(n),[env.mu for i in range(n)])
 plt.plot(range(n),rec.mu_record)
 
