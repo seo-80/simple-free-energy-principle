@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import time
+from scipy.integrate import odeint
 
 def f(x):
     return x**2
@@ -29,7 +30,7 @@ class recognizer(enviroment):
         else:
             return (self.f(x+0.001)-self.f(x))/0.001
     def differential(self,x,y):
-        return ((y-f(x))*self.f_diff(x)/self.var[0]+(self.mu0-x)/self.var[1])
+        return ((y-f(x))*self.f_diff(x)/self.var[1]+(self.mu0-x)/self.var[0])
     def inference(self,y):
         if self.analysis_method==0:#オイラー法
             self.mu+=self.differential(self.mu,y)*self.h
@@ -40,22 +41,32 @@ class recognizer(enviroment):
             k4 = self.differential(self.mu + self.h * k3, y)
 
             self.mu += self.h * (k1 + 2 * k2 + 2 * k3 + k4) / 6
+
+        elif self.analysis_method==2:  # scipy
+            odediff = lambda x, t: self.differential(x, y)
+            self.mu = odeint(odediff, self.mu, np.linspace(0, 1, int(1/h)))[-1]
+            
         self.mu_record=np.append(self.mu_record,self.mu)
 
-h=0.00001
-analysis_method=1
+h=0.0000001
+analysis_method=2
 var=[np.e**-10,np.e**-16]
-var=[0.01,0.01]
+
+var=[np.e**-16,np.e**-10]
+var=[0.1,0.1]
+
+
 env=enviroment(var=var,x0=10,h=h)
 rec=recognizer(var=var,x0=9,h=h,analysis_method=analysis_method)
 
 
-n=int(0.001/h)
+n=int(0.00001/h)
 start=time.time()
+print(n)
 for i in range(n-1):
     y=env.output()
     rec.inference(y)
-    if i%10000==0:
+    if i%1==0:
         print(i)
 print(time.time()-start)
 plt.plot(range(n),[env.mu for i in range(n)])
