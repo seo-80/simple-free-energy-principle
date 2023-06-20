@@ -44,29 +44,27 @@ class recognizer(enviroment):
 
         elif self.analysis_method==2:  # scipy
             odediff = lambda x, t: self.differential(x, y)
-            self.mu = odeint(odediff, self.mu, np.linspace(0, 1, int(1/h)))[-1]
+            self.mu = odeint(odediff, self.mu, [0,1])[-1]
             
         self.mu_record=np.append(self.mu_record,self.mu)
 
-h=0.0000001
+h=0.0001
 analysis_method=2
 var=[np.e**-10,np.e**-16]
-
 var=[np.e**-16,np.e**-10]
-var=[0.1,0.1]
+# var=[0.1,0.1]
 
 
 env=enviroment(var=var,x0=10,h=h)
 rec=recognizer(var=var,x0=9,h=h,analysis_method=analysis_method)
 
 
-n=int(0.00001/h)
+n=int(0.001/h)
 start=time.time()
-print(n)
 for i in range(n-1):
     y=env.output()
     rec.inference(y)
-    if i%1==0:
+    if i%10==0:
         print(i)
 print(time.time()-start)
 plt.plot(range(n),[env.mu for i in range(n)])
